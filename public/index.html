@@ -213,7 +213,8 @@
         document.getElementById("form").style.display = "none";
         document.getElementById("result").style.display = "block";
 
-        await savePairsToServer();
+      console.log("Saving pairs:", previousPairings); // Log the pairs being saved
+      await savePairsToServer();
       } else {
         alert("Sorry, no available partner at the moment. Try again later.");
       }

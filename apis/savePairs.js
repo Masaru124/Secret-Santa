@@ -1,32 +1,47 @@
-const fs = require('fs');
+import { Pool } from 'pg';
 
-module.exports = (req, res) => {
-  const previousPairings = req.body.pairs;
+const pool = new Pool({
+  connectionString: process.env.NEON_DATABASE_URL, 
+});
 
-  // Read the current pairs.json to check if pairs already exist
-  fs.readFile('pairs.json', 'utf8', (err, data) => {
-    if (err) {
-      return res.status(500).send("Error reading pairs.json");
+export default async function handler(req, res) {
+  if (req.method === 'POST') {
+    const { pairs } = req.body;
+
+    if (!pairs || pairs.length === 0) {
+      return res.status(400).send("No pairs to save.");
     }
 
-    let currentPairs = [];
     try {
-      currentPairs = JSON.parse(data);
-    } catch (e) {
-      currentPairs = [];
-    }
+      const client = await pool.connect();
+      
+      // Create a table to store pairs if it doesn't exist
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS secret_santa_pairs (
+          id SERIAL PRIMARY KEY,
+          player_name VARCHAR(255),
+          partner_name VARCHAR(255)
+        );
+      `);
 
-    // If pairs already exist, don't overwrite them
-    if (currentPairs.length > 0) {
-      return res.status(400).send("Pairings already assigned. You can only start again if you want to generate new pairs.");
-    }
+      // Insert the pairs into the table
+      const insertQueries = pairs.map(pair => {
+        return client.query(`
+          INSERT INTO secret_santa_pairs (player_name, partner_name) 
+          VALUES ($1, $2)`, [pair[0], pair[1]]);
+      });
 
-    // If no pairs exist, save the new ones
-    fs.writeFile('pairs.json', JSON.stringify(previousPairings, null, 2), (err) => {
-      if (err) {
-        return res.status(500).send("Error writing to pairs.json");
-      }
+      // Wait for all insert queries to complete
+      await Promise.all(insertQueries);
+      
+      client.release();
+
       res.status(200).send("Pairings saved successfully!");
-    });
-  });
-};
+    } catch (error) {
+      console.error("Error saving pairings: ", error);
+      res.status(500).send("Error saving pairings.");
+    }
+  } else {
+    res.status(405).send("Method Not Allowed");
+  }
+}
