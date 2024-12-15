@@ -4,7 +4,131 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Secret Santa Game</title>
-<link rel="stylesheet" href="style.css"> 
+  <style>
+    /* General styles */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    /* Header styles */
+    h1 {
+      font-size: 2.5rem;
+      color: #4CAF50;
+      margin-top: 20px;
+    }
+
+    /* Welcome message */
+    #welcomeMessage {
+      font-size: 1.2rem;
+      color: #666;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    /* Button styling */
+    button {
+      padding: 10px 20px;
+      font-size: 1rem;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    /* Form styling */
+    #form {
+      display: none;
+      text-align: center;
+    }
+
+    input {
+      padding: 10px;
+      font-size: 1rem;
+      margin-top: 10px;
+      width: 200px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #4CAF50;
+    }
+
+    /* Result styling */
+    #result {
+      display: none;
+      text-align: center;
+      font-size: 1.2rem;
+    }
+
+    #result h2 {
+      font-size: 2rem;
+      color: #4CAF50;
+    }
+
+    #yourPartnerName, #partnerName {
+      font-size: 1.5rem;
+      color: #333;
+      margin: 10px 0;
+    }
+
+    /* Reset Button */
+    #result button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 1rem;
+      background-color: #f44336;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      color: white;
+    }
+
+    #result button:hover {
+      background-color: #e53935;
+    }
+
+    /* Media Queries */
+    @media (max-width: 600px) {
+      body {
+        font-size: 1rem;
+      }
+
+      h1 {
+        font-size: 2rem;
+      }
+
+      #welcomeMessage, #result p {
+        font-size: 1rem;
+      }
+
+      button {
+        padding: 8px 16px;
+      }
+
+      input {
+        width: 150px;
+        font-size: 1rem;
+      }
+    }
+  </style>
 </head>
 <body>
   <h1>Secret Santa Game</h1>
@@ -29,7 +153,6 @@
     const students = ["Vinod", "Yashaswini", "Krishna bharathi", "Nagaveni", "Sumitra"];
     let previousPairings = [];
 
-    // Function to load pairs when the script starts
     async function loadPairs() {
       const response = await fetch('/api/getPairs');  // Correct API endpoint
       if (response.ok) {
@@ -40,13 +163,12 @@
       }
     }
 
-    // Load pairs when the script starts
     loadPairs();
 
     function startGame() {
       document.getElementById("startButton").style.display = "none";
       document.getElementById("form").style.display = "block";
-      document.getElementById("welcomeMessage").style.display = "none"; // Hide welcome message
+      document.getElementById("welcomeMessage").style.display = "none";
     }
 
     async function assignSanta() {
@@ -62,7 +184,6 @@
         return;
       }
 
-      // Check if the player already has a partner
       const existingPair = previousPairings.find(pair => pair.includes(playerName));
       if (existingPair) {
         const partnerName = existingPair.find(name => name !== playerName);
@@ -70,10 +191,9 @@
         document.getElementById("partnerName").textContent = "Your Secret Santa Partner is: " + partnerName;
         document.getElementById("form").style.display = "none";
         document.getElementById("result").style.display = "block";
-        return;  // If they already have a partner, don't proceed with pairing
+        return;
       }
 
-      // If no partner exists, proceed with pairing
       const remainingStudents = students.filter(student => student !== playerName);
       shuffleArray(remainingStudents);
 
@@ -93,7 +213,6 @@
         document.getElementById("form").style.display = "none";
         document.getElementById("result").style.display = "block";
 
-        // Save updated pairings to the server
         await savePairsToServer();
       } else {
         alert("Sorry, no available partner at the moment. Try again later.");
@@ -111,11 +230,10 @@
     }
 
     function startAgain() {
-      // Reset the game state and clear the input
       document.getElementById("startButton").style.display = "block";
       document.getElementById("result").style.display = "none";
       document.getElementById("playerName").value = "";
-      document.getElementById("welcomeMessage").style.display = "block"; // Show the welcome message again
+      document.getElementById("welcomeMessage").style.display = "block";
     }
 
     function shuffleArray(array) {
