@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Secret Santa Game</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Secret Santa Game</h1>
+  <p id="welcomeMessage">Welcome to the Secret Santa game! Click the button below to start.</p>
+  
+  <button id="startButton" onclick="startGame()">Start Game</button>
+
+  <div id="form">
+    <label for="playerName">Enter your name: </label>
+    <input type="text" id="playerName">
+    <button onclick="assignSanta()">Assign Secret Santa</button>
+  </div>
+
+  <div id="result">
+    <h2>Your Secret Santa Partner</h2>
+    <p id="yourPartnerName"></p>
+    <p id="partnerName"></p>
+    <button onclick="startAgain()">Start Again</button>
+  </div>
+
+  <script>
+    const students = ["Vinod", "Yashaswini", "Krishna bharathi", "Nagaveni", "Sumitra"];
+    let previousPairings = [];
+
+    // Function to load pairs when the script starts
+    async function loadPairs() {
+      const response = await fetch('/api/getPairs');
+      if (response.ok) {
+        previousPairings = await response.json();
+        console.log(previousPairings);
+      } else {
+        console.error("Failed to load pairs.");
+      }
+    }
+
+    // Load pairs when the script starts
+    loadPairs();
+
+    function startGame() {
+      document.getElementById("startButton").style.display = "none";
+      document.getElementById("form").style.display = "block";
+      document.getElementById("welcomeMessage").style.display = "none"; // Hide welcome message
+    }
+
+    async function assignSanta() {
+      const playerName = document.getElementById("playerName").value.trim();
+
+      if (!playerName) {
+        alert("Please enter your name!");
+        return;
+      }
+
+      if (!students.includes(playerName)) {
+        alert("Name not found. Please enter a valid name from the list.");
+        return;
+      }
+
+      // Check if the player already has a partner
+      const existingPair = previousPairings.find(pair => pair.includes(playerName));
+      if (existingPair) {
+        const partnerName = existingPair.find(name => name !== playerName);
+        document.getElementById("yourPartnerName").textContent = "You are paired with: " + playerName;
+        document.getElementById("partnerName").textContent = "Your Secret Santa Partner is: " + partnerName;
+        document.getElementById("form").style.display = "none";
+        document.getElementById("result").style.display = "block";
+        return;  // If they already have a partner, don't proceed with pairing
+      }
+
+      // If no partner exists, proceed with pairing
+      const remainingStudents = students.filter(student => student !== playerName);
+      shuffleArray(remainingStudents);
+
+      let partnerName;
+      for (let i = 0; i < remainingStudents.length; i++) {
+        if (!previousPairings.some(pair => pair.includes(playerName) && pair.includes(remainingStudents[i]))) {
+          partnerName = remainingStudents[i];
+          previousPairings.push([playerName, partnerName]);
+          previousPairings.push([partnerName, playerName]);
+          break;
+        }
+      }
+
+      if (partnerName) {
+        document.getElementById("yourPartnerName").textContent = "You are paired with: " + playerName;
+        document.getElementById("partnerName").textContent = "Your Secret Santa Partner is: " + partnerName;
+        document.getElementById("form").style.display = "none";
+        document.getElementById("result").style.display = "block";
+
+        // Save updated pairings to the server
+        await savePairsToServer();
+      } else {
+        alert("Sorry, no available partner at the moment. Try again later.");
+      }
+    }
+
+    async function savePairsToServer() {
+      await fetch('/api/savePairs', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ pairs: previousPairings })
+      });
+    }
+
+    function startAgain() {
+      // Reset the game state and clear the input
+      document.getElementById("startButton").style.display = "block";
+      document.getElementById("result").style.display = "none";
+      document.getElementById("playerName").value = "";
+      document.getElementById("welcomeMessage").style.display = "block"; // Show the welcome message again
+    }
+
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+  </script>
+</body>
+</html>
