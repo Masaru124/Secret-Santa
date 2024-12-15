@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Secret Santa Game</title>
-  <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css"> 
 </head>
 <body>
   <h1>Secret Santa Game</h1>
@@ -31,7 +31,7 @@
 
     // Function to load pairs when the script starts
     async function loadPairs() {
-      const response = await fetch('/api/getPairs');
+      const response = await fetch('/api/getPairs');  // Correct API endpoint
       if (response.ok) {
         previousPairings = await response.json();
         console.log(previousPairings);
