@@ -1,15 +1,17 @@
 {
   "name": "secret-santa",
   "version": "1.0.0",
-  "main": "script.js",
+  "description": "Secret Santa Game with serverless backend",
+  "main": "index.html",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
-  "dependencies": {
-    "express": "^4.21.2"
+  "dependencies": {},
+  "devDependencies": {},
+  "engines": {
+    "node": "16.x"
   }
 }
